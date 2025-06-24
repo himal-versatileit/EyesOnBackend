@@ -1,12 +1,12 @@
 const sql = require("mssql");
 
 const config = {
-  user: "sa", // your SQL server username
+  user: "himal", // your SQL server username
   password: "kismis@2803H",
-  server: "localhost", // localhost or your SQL server IP
+  server: "himal.database.windows.net", // localhost or your SQL server IP
   database: "EyesOn",
   options: {
-    encrypt: false, // set to true if using Azure
+    encrypt: true, // set to true if using Azure
     trustServerCertificate: true,
   },
 };
