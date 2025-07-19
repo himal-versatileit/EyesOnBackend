@@ -156,19 +156,16 @@ const getGuardDashboardData = async (req, res) => {
 }
 
 const getGuardLiveTrackingData = async (req, res) => {
-  let pool;
   try {
-    const { guardId } = req.query;
-    const query = 'SELECT * FROM fn_getguardlivetrackingdata($1)';
-    const values = [guardId];
+    const { guardId ,startdate, enddate} = req.query;
+    const query = 'SELECT * FROM fn_getguardlivetrackingdata($1,$2,$3)';
+    const values = [guardId , startdate, enddate];
     const result = await db.query(query, values);
     res.status(200).json(result.rows);
   } catch (error) {
     res.status(500).json({
       message: error.message,
     });
-  } finally {
-    pool?.close();
   }
 }
 
