@@ -68,8 +68,6 @@ const verifyOTP = async (req, res) => {
             success: false,
             message: error.message || 'OTP validation failed'
         });
-    } finally {
-        pool?.close();
     }
 }
     

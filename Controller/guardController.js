@@ -169,6 +169,21 @@ const getGuardLiveTrackingData = async (req, res) => {
   }
 }
 
+const getGuardLiveTrackingDataById = async (req, res) => {
+  try {
+    const { locationId   } = req.query;
+    const query = 'SELECT * FROM fn_get_guard_coordinates_by_guard_id($1)';
+    const values = [locationId];
+    const result = await db.query(query, values);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+
 const addGuardLiveTrackingData = async (req, res) => {
   try {
       const { guardId, startTime, endTime, coordinates } = req.body;
@@ -217,6 +232,7 @@ const addGuardLiveTrackingData = async (req, res) => {
     manageLocation,
     getGuardDashboardData,
     getGuardLiveTrackingData,
+    getGuardLiveTrackingDataById,
     addGuardLiveTrackingData,
   };
   

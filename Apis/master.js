@@ -7,6 +7,7 @@ const {
   manageShift,
   manageLocation,
   getGuardLiveTrackingData,
+  getGuardLiveTrackingDataById,
   addGuardLiveTrackingData,
 } = require("../Controller/guardController");
 const {
@@ -64,6 +65,7 @@ router.get("/incidents", getIncident);
 // Live Tracking
 router.post("/guard-live-tracking", addGuardLiveTrackingData);
 router.get("/guard-live-tracking", getGuardLiveTrackingData);
+router.get("/guard-live-trackingById", getGuardLiveTrackingDataById);
 
 router.post("/devices",manageDevice);
 
