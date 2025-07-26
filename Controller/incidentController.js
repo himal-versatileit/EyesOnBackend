@@ -52,8 +52,14 @@ const manageIncident = async (req, res) => {
         const queryText = 'CALL sp_incident_crud($1, $2, $3, $4, $5, $6, $7, $8)';
         const queryParams=[incidentId,guardId,shiftId,description,photoUrl,latitude,longitude,null];
         const result = await db.query(queryText, queryParams);
-
-        res.status(200).json(result.rows)
+        res.status(200).json({
+            success: true,
+            message: result.rows[0]._returnstatus,
+            data: {
+                incidentId: result.rows[0]._incidentid,
+                photoUrl: photoUrl,
+            }
+        });
         });
     } catch (error) {
         // Clean up the uploaded file if an error occurred and a file was uploaded
