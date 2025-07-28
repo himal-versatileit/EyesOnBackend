@@ -1,5 +1,32 @@
 const fs = require("fs");
 const db = require("../DbConfig/dbconfig");
+const multer = require("multer");
+const util = require("util");
+const path = require("path");
+
+filename = '';
+// Ensure uploads directory exists
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "public/uploads/");
+    },
+
+    filename: (req, file, cb) => {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const year = now.getFullYear();
+        const dateStr = `${day}_${month}_${year}`;
+        
+        const randomStr = 'Guard';
+        const ext = path.extname(file.originalname);
+        const generatedName = `${dateStr}_${randomStr}${ext}`;
+        this.filename = generatedName;
+        cb(null, generatedName);
+    }
+  });
+  
+  const upload = multer({ storage: storage }).single("guardPhoto");
 
 const getGuard = async (req, res) => {
   try {
@@ -24,14 +51,18 @@ const getGuard = async (req, res) => {
 
 const createGuard = async (req, res) => {
   try {
+    upload(req, res, async (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error uploading file." });
+        }
       const { guardId, fullName, phoneNumber, email, password, isActive } = req.body;
-
+      const photoUrl = `public/uploads/${this.filename}`;
       // Ensure guardId is treated as a number
       const numericGuardId = parseInt(guardId, 10);
 
       const sqlQuery = 'CALL sp_guard_crud($1::integer, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::boolean, $7::varchar)';
       
-      const params = [numericGuardId, fullName, phoneNumber, email, password, isActive, null];
+      const params = [numericGuardId, fullName, phoneNumber, email, password, isActive,photoUrl, null];
 
       // Execute the procedure
       const { rows } = await db.query(sqlQuery, params);
@@ -45,7 +76,7 @@ const createGuard = async (req, res) => {
           message: returnStatus,
           data: { guardId: resultId }
       });
-
+    });
   } catch (error) {
       // Any "RAISE EXCEPTION" from your procedure will be caught here.
       console.error('API Error:', error);

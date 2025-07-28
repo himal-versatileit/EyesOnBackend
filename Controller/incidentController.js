@@ -1,4 +1,3 @@
-const sql = require("mssql");
 const fs = require("fs");
 const db = require("../DbConfig/dbconfig");
 const multer = require("multer");
