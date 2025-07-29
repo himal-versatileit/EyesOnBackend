@@ -60,7 +60,7 @@ const createGuard = async (req, res) => {
       // Ensure guardId is treated as a number
       const numericGuardId = parseInt(guardId, 10);
 
-      const sqlQuery = 'CALL sp_guard_crud($1::integer, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::boolean, $7::varchar)';
+      const sqlQuery = 'CALL sp_guard_crud($1::integer, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::boolean, $7::varchar,$8::varchar)';
       
       const params = [numericGuardId, fullName, phoneNumber, email, password, isActive,photoUrl, null];
 
