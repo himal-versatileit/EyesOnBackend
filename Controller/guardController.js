@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
         const year = now.getFullYear();
         const dateStr = `${day}_${month}_${year}`;
         
-        const randomStr = 'Guard';
+        const randomStr = Math.random().toString(36).substr(2, 7)+'_Guard';
         const ext = path.extname(file.originalname);
         const generatedName = `${dateStr}_${randomStr}${ext}`;
         this.filename = generatedName;
