@@ -55,14 +55,28 @@ const createGuard = async (req, res) => {
         if (err) {
           return res.status(500).json({ message: "Error uploading file." });
         }
-      const { guardId, fullName, phoneNumber, email, password, isActive } = req.body;
+        const { 
+          guardId, 
+          fullName, 
+          phoneNumber, 
+          email, 
+          address, 
+          city, 
+          state, 
+          pincode, 
+          pAddress, 
+          pCity, 
+          pState, 
+          pPincode, 
+          isActive
+        } = req.body;
       const photoUrl = `public/uploads/${this.filename}`;
       // Ensure guardId is treated as a number
       const numericGuardId = parseInt(guardId, 10);
 
-      const sqlQuery = 'CALL sp_guard_crud($1::integer, $2::varchar, $3::varchar, $4::varchar, $5::varchar, $6::boolean, $7::varchar,$8::varchar)';
+      const sqlQuery = 'CALL sp_guard_crud($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)';
       
-      const params = [numericGuardId, fullName, phoneNumber, email, password, isActive,photoUrl, null];
+      const params = [numericGuardId, fullName, phoneNumber, email,  address, city, state, pincode, pAddress, pCity, pState, pPincode, isActive,photoUrl,null];
 
       // Execute the procedure
       const { rows } = await db.query(sqlQuery, params);
@@ -214,6 +228,24 @@ const getGuardLiveTrackingDataById = async (req, res) => {
   }
 }
 
+const getDocument = async (req, res) => {
+  try {
+    const { guardId } = req.query;
+
+    // Optional: Add filter if guardId is provided
+    let query = 'SELECT * FROM public."tbl_IdProof"';
+    const values = [];
+
+    const result = await db.query(query, values);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 
 const addGuardLiveTrackingData = async (req, res) => {
   try {
@@ -264,6 +296,7 @@ const addGuardLiveTrackingData = async (req, res) => {
     getGuardDashboardData,
     getGuardLiveTrackingData,
     getGuardLiveTrackingDataById,
+    getDocument,
     addGuardLiveTrackingData,
   };
   

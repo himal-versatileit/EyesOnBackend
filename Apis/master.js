@@ -9,6 +9,7 @@ const {
   getGuardLiveTrackingData,
   getGuardLiveTrackingDataById,
   addGuardLiveTrackingData,
+  getDocument
 } = require("../Controller/guardController");
 const {
     createAlert,
@@ -68,5 +69,6 @@ router.get("/guard-live-tracking", getGuardLiveTrackingData);
 router.get("/guard-live-trackingById", getGuardLiveTrackingDataById);
 
 router.post("/devices",manageDevice);
+router.get("/document",getDocument);
 
 module.exports = router;

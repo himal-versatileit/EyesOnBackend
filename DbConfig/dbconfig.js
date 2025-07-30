@@ -2,11 +2,11 @@ const { Pool } = require('pg');
 
 // Create a new pool instance. A pool is recommended for managing connections.
 const pool = new Pool({
-  user: 'himalpatel',      // your PostgreSQL username
-  host: 'dpg-d1sd73je5dus739iq72g-a.oregon-postgres.render.com',                    // or your PostgreSQL server IP/hostname
-  database: 'eyeson_9agz',       // your PostgreSQL database name
-  password: 'UAbeUtPg2mE5TtNAMsSchlN20ZOCkL6j',   // your PostgreSQL password
-  port: 5432,                           // default PostgreSQL port
+  user: 'avnadmin',      // your PostgreSQL username
+  host: 'pg-eyeson-eyeson.j.aivencloud.com',                    // or your PostgreSQL server IP/hostname
+  database: 'EyesOn',       // your PostgreSQL database name
+  password: 'AVNS_WAO8uF04fTv_oKsPksI',   // your PostgreSQL password
+  port: 25089,                           // default PostgreSQL port
   ssl: { rejectUnauthorized: false }
 });
 
