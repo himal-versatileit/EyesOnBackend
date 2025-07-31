@@ -7,26 +7,41 @@ const path = require("path");
 filename = '';
 // Ensure uploads directory exists
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "public/uploads/");
-    },
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/");
+  },
+  filename: (req, file, cb) => {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const dateStr = `${day}_${month}_${year}`;
 
-    filename: (req, file, cb) => {
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-        const year = now.getFullYear();
-        const dateStr = `${day}_${month}_${year}`;
-        
-        const randomStr = Math.random().toString(36).substr(2, 7)+'_Guard';
-        const ext = path.extname(file.originalname);
-        const generatedName = `${dateStr}_${randomStr}${ext}`;
-        this.filename = generatedName;
-        cb(null, generatedName);
+    const randomStr = Math.random().toString(36).substr(2, 7);
+    const ext = path.extname(file.originalname);
+
+    // Decide suffix based on field name
+    let suffix = '';
+    if (file.fieldname === 'guardPhoto') {
+      suffix = '_Guard';
+    } else if (file.fieldname === 'idProof') {
+      suffix = '_GuardID';
     }
-  });
+
+    const generatedName = `${dateStr}_${randomStr}${suffix}${ext}`;
+
+    // Save generated name in request for later use
+    if (!req.fileNames) req.fileNames = {};
+    req.fileNames[file.fieldname] = generatedName;
+
+    cb(null, generatedName);
+  }
+});
   
-  const upload = multer({ storage: storage }).single("guardPhoto");
+  const upload = multer({ storage }).fields([
+    { name: 'guardPhoto', maxCount: 1 },
+    { name: 'idProof', maxCount: 1 }
+  ]);
 
 const getGuard = async (req, res) => {
   try {
@@ -68,38 +83,58 @@ const createGuard = async (req, res) => {
           pCity, 
           pState, 
           pPincode, 
-          isActive
+          isActive,
+          idProofId,       // for sp_Addguard_id_proof
+          idno,
+          documentNo
         } = req.body;
-      const photoUrl = `public/uploads/${this.filename}`;
-      // Ensure guardId is treated as a number
-      const numericGuardId = parseInt(guardId, 10);
 
-      const sqlQuery = 'CALL sp_guard_crud($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)';
-      
-      const params = [numericGuardId, fullName, phoneNumber, email,  address, city, state, pincode, pAddress, pCity, pState, pPincode, isActive,photoUrl,null];
-
-      // Execute the procedure
-      const { rows } = await db.query(sqlQuery, params);
-
-      // The result handling remains the same
-      const resultId = rows[0]._guardid;
-      const returnStatus = rows[0]._status;
-
-      res.status(200).json({
+        const photoUrl = req.fileNames?.guardPhoto ? `public/uploads/${req.fileNames.guardPhoto}` : null;
+        const idProofUrl = req.fileNames?.idProof ? `public/uploads/${req.fileNames.idProof}` : null;
+  
+        const numericGuardId = parseInt(guardId || 0, 10);
+        const numericIdProofId = parseInt(idProofId || 0, 10);
+        const numericIdno = parseInt(idno || 0, 10);
+  
+        // First call: create or update guard
+        const guardQuery = `CALL sp_guard_crud($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`;
+        const guardParams = [
+          numericGuardId, fullName, phoneNumber, email, address,
+          city, state, pincode, pAddress, pCity, pState, pPincode,
+          isActive, photoUrl, null
+        ];
+  
+        const guardResult = await db.query(guardQuery, guardParams);
+        const createdGuardId = guardResult.rows[0]._guardid;
+        const guardStatus = guardResult.rows[0]._status;
+  
+        // Second call: insert/update guard ID proof (if file exists)
+        let idProofResult = null;
+        if (documentNo && idProofUrl) {
+          const idProofQuery = `CALL sp_Addguard_id_proof($1, $2, $3, $4, $5, $6, $7)`;
+          const idProofParams = [
+            numericIdProofId, numericIdno, createdGuardId, documentNo, idProofUrl, null, null
+          ];
+          idProofResult = await db.query(idProofQuery, idProofParams);
+        }
+  
+        res.status(200).json({
           success: true,
-          message: returnStatus,
-          data: { guardId: resultId }
+          message: guardStatus,
+          data: {
+            guardId: createdGuardId,
+            idProofStatus: idProofResult ? idProofResult.rows[0].out_status : null
+          }
+        });
       });
-    });
-  } catch (error) {
-      // Any "RAISE EXCEPTION" from your procedure will be caught here.
-      console.error('API Error:', error);
+    } catch (error) {
+      console.error("API Error:", error);
       res.status(500).json({
-          success: false,
-          message: error.message,
+        success: false,
+        message: error.message
       });
-  }
-};
+    }
+  };
 
 const manageShift = async (req, res) => {
   try {
@@ -287,6 +322,7 @@ const addGuardLiveTrackingData = async (req, res) => {
       }
   }
 };
+
 
   module.exports = {
     getGuard,
